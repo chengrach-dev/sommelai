@@ -1,0 +1,24 @@
+# Generated artifacts -- rebuilt on first deploy by app.py's bootstrap
+data/wines_clean.pkl
+data/wines_clean.parquet
+artifacts/*.joblib
+artifacts/*.pkl
+artifacts/*.parquet
+artifacts/metrics.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Streamlit
+.streamlit/secrets.toml
