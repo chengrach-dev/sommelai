@@ -88,9 +88,12 @@ def main() -> int:
     # --- KNN classifier on top-N varieties ---
     print(f"[train] training KNN on top-{TOP_N_VARIETIES} varieties")
     top_varieties = df["variety"].value_counts().head(TOP_N_VARIETIES).index
-    mask = df["variety"].isin(top_varieties)
-    Xc = X[mask.values]
-    yc = df.loc[mask, "variety"].values
+    # Force numpy/object dtypes: newer pandas (3.x / Streamlit Cloud Python 3.14)
+    # defaults to PyArrow-backed string arrays which sklearn cannot index with
+    # numpy integer arrays. .to_numpy().astype(str) gives us a plain ndarray.
+    mask = df["variety"].isin(top_varieties).to_numpy()
+    Xc = X[mask]
+    yc = df.loc[mask, "variety"].to_numpy().astype(str)
     print(f"[train] classifier data: {Xc.shape[0]:,} rows, {len(top_varieties)} classes")
 
     X_tr, X_te, y_tr, y_te = train_test_split(
