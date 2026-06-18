@@ -131,9 +131,8 @@ go = st.sidebar.button("Find me wines", type="primary", use_container_width=True
 # -----------------------------------------------------------------------------
 st.title("Sommel-AI")
 st.markdown(
-    "*Natural-language wine recommendations* — describe what you want like you'd "
-    "tell a friend, and a content-based recommender trained on 130,000 wine reviews "
-    "will rank candidates by description match and price-quality value."
+    "Tell us what you're in the mood for — a flavor, a dish, a vibe, a budget — "
+    "and we'll find wines you'll love. No wine-speak required."
 )
 
 if not go:
@@ -175,15 +174,10 @@ with st.spinner("Tasting through 130,000 wines..."):
 # Top banner: what the classifier thinks
 # -----------------------------------------------------------------------------
 if predicted:
-    c1, c2 = st.columns([1, 3])
-    with c1:
-        st.metric("Your query sounds like", predicted)
-    with c2:
-        st.caption(
-            "The KNN classifier was trained on 100k+ wine reviews across the top "
-            "25 varieties. It mapped your description to the variety it most "
-            "resembles — we use that to enrich the search."
-        )
+    st.info(
+        f"Based on what you described, we think you'd love a **{predicted}**. "
+        "Here are our top picks for you below."
+    )
 
 st.divider()
 
