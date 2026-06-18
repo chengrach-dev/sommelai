@@ -98,9 +98,9 @@ def find_input() -> Path:
 
 def main() -> int:
     inp = find_input()
-    print(f"[preprocess] loading {inp}")
+    print(f"[preprocess] loading {inp}", flush=True)
     df = pd.read_csv(inp, index_col=0)
-    print(f"[preprocess] loaded {len(df):,} rows, {df.shape[1]} cols")
+    print(f"[preprocess] loaded {len(df):,} rows, {df.shape[1]} cols", flush=True)
 
     # Force plain numpy / Python-object dtypes throughout. Newer pandas (3.x)
     # on Python 3.14 defaults string columns to PyArrow-backed ExtensionArrays,
@@ -134,9 +134,9 @@ def main() -> int:
 
     # Persist (pickle is version-stable across pandas releases; parquet needs
     # matching pyarrow versions which causes friction across machines)
-    print(f"[preprocess] writing {OUTPUT}")
+    print(f"[preprocess] writing {OUTPUT}", flush=True)
     df.to_pickle(OUTPUT)
-    print(f"[preprocess] done: {len(df):,} rows, {df.shape[1]} cols")
+    print(f"[preprocess] done: {len(df):,} rows, {df.shape[1]} cols", flush=True)
 
     # Quick sanity print
     print("\n[preprocess] summary:")

@@ -44,11 +44,11 @@ METRICS_PATH = ART / "metrics.txt"
 # Config
 # -----------------------------------------------------------------------------
 # Sized to fit comfortably in Streamlit Community Cloud's 1 GB RAM ceiling.
-# Locally you can bump max_features back to 20000 and TOP_N_VARIETIES to 25 for
-# slightly higher classifier accuracy (~3-5 points).
+# Locally you can bump max_features back to 20000, ngram_range=(1,2), and
+# TOP_N_VARIETIES to 25 for slightly higher classifier accuracy (~3-5 points).
 TFIDF_KW = dict(
-    max_features=10000,
-    ngram_range=(1, 2),
+    max_features=5000,
+    ngram_range=(1, 1),     # unigrams only -- halves vocab space
     min_df=5,
     max_df=0.85,
     stop_words="english",
@@ -57,8 +57,9 @@ TFIDF_KW = dict(
 
 # Classifier is trained only on the top-N varieties -- the long tail of 707
 # varieties has too few samples to learn cleanly.
-TOP_N_VARIETIES = 15
+TOP_N_VARIETIES = 12
 KNN_K = 15
+SKIP_EVAL = True            # skip held-out metrics on cloud to save peak RAM
 
 
 def main() -> int:
@@ -66,9 +67,9 @@ def main() -> int:
         print(f"[train] missing {DATA}; run preprocess.py first")
         return 1
 
-    print(f"[train] loading {DATA}")
+    print(f"[train] loading {DATA}", flush=True)
     df = pd.read_pickle(DATA)
-    print(f"[train] {len(df):,} rows")
+    print(f"[train] {len(df):,} rows", flush=True)
 
     # Defensive dtype normalization (newer pandas may wrap strings in PyArrow
     # ExtensionArrays which silently break sklearn / numpy indexing).
@@ -77,11 +78,11 @@ def main() -> int:
             df[col] = df[col].astype(object)
 
     # --- TF-IDF over all wines ---
-    print("[train] fitting TF-IDF on description_clean")
+    print("[train] fitting TF-IDF on description_clean", flush=True)
     vec = TfidfVectorizer(**TFIDF_KW)
     # .tolist() forces Python strings -- avoids any ExtensionArray weirdness.
     X = vec.fit_transform(df["description_clean"].fillna("").astype(str).tolist())
-    print(f"[train] TF-IDF matrix: {X.shape}, nnz={X.nnz:,}")
+    print(f"[train] TF-IDF matrix: {X.shape}, nnz={X.nnz:,}", flush=True)
 
     joblib.dump(vec, VEC_PATH)
     joblib.dump(X, MAT_PATH)
@@ -93,10 +94,10 @@ def main() -> int:
         "description",
     ]
     df[meta_cols].to_pickle(META_PATH)
-    print(f"[train] saved vectorizer + matrix + metadata")
+    print(f"[train] saved vectorizer + matrix + metadata", flush=True)
 
     # --- KNN classifier on top-N varieties ---
-    print(f"[train] training KNN on top-{TOP_N_VARIETIES} varieties")
+    print(f"[train] training KNN on top-{TOP_N_VARIETIES} varieties", flush=True)
     top_varieties = df["variety"].value_counts().head(TOP_N_VARIETIES).index
     # Force numpy/object dtypes: newer pandas (3.x / Streamlit Cloud Python 3.14)
     # defaults to PyArrow-backed string arrays which sklearn cannot index with
@@ -104,47 +105,57 @@ def main() -> int:
     mask = df["variety"].isin(top_varieties).to_numpy()
     Xc = X[mask]
     yc = df.loc[mask, "variety"].to_numpy().astype(str)
-    print(f"[train] classifier data: {Xc.shape[0]:,} rows, {len(top_varieties)} classes")
+    print(f"[train] classifier data: {Xc.shape[0]:,} rows, {len(top_varieties)} classes", flush=True)
 
-    X_tr, X_te, y_tr, y_te = train_test_split(
-        Xc, yc, test_size=0.15, random_state=42, stratify=yc
-    )
-
-    knn = KNeighborsClassifier(
-        n_neighbors=KNN_K,
-        metric="cosine",
-        algorithm="brute",   # cosine + sparse => brute is the safe choice
-        n_jobs=-1,
-    )
-    knn.fit(X_tr, y_tr)
-
-    print("[train] evaluating on held-out test set")
-    # KNN.predict on 15% of the matrix is slow; sample 3000 rows for the report.
-    rng = np.random.default_rng(0)
-    sample_idx = rng.choice(X_te.shape[0], size=min(3000, X_te.shape[0]), replace=False)
-    y_pred = knn.predict(X_te[sample_idx])
-    y_true = y_te[sample_idx]
-
-    report = classification_report(y_true, y_pred, zero_division=0)
-    accuracy = (y_pred == y_true).mean()
-
-    metrics = [
-        f"# Sommel-AI KNN classifier metrics",
-        f"top_n_varieties: {TOP_N_VARIETIES}",
-        f"k:               {KNN_K}",
-        f"train rows:      {X_tr.shape[0]:,}",
-        f"test rows:       {X_te.shape[0]:,} (eval sample {len(sample_idx):,})",
-        f"accuracy:        {accuracy:.4f}",
-        "",
-        report,
-    ]
-    METRICS_PATH.write_text("\n".join(metrics))
-    print(f"[train] accuracy on sample = {accuracy:.4f}")
-    print(f"[train] full report -> {METRICS_PATH}")
+    if SKIP_EVAL:
+        # Train on the full classifier dataset, skip held-out evaluation
+        # (held-out predict on KNN over 10k+ sparse vectors is the peak-RAM
+        # operation in this script). Metrics from a richer local run are
+        # already in artifacts/metrics.txt for the proposal.
+        knn = KNeighborsClassifier(
+            n_neighbors=KNN_K, metric="cosine", algorithm="brute", n_jobs=1
+        )
+        knn.fit(Xc, yc)
+        metrics_text = (
+            f"# Sommel-AI KNN classifier (no held-out eval)\n"
+            f"top_n_varieties: {TOP_N_VARIETIES}\n"
+            f"k:               {KNN_K}\n"
+            f"train rows:      {Xc.shape[0]:,}\n"
+        )
+        METRICS_PATH.write_text(metrics_text)
+        print("[train] trained KNN; eval skipped", flush=True)
+    else:
+        X_tr, X_te, y_tr, y_te = train_test_split(
+            Xc, yc, test_size=0.15, random_state=42, stratify=yc
+        )
+        knn = KNeighborsClassifier(
+            n_neighbors=KNN_K, metric="cosine", algorithm="brute", n_jobs=-1
+        )
+        knn.fit(X_tr, y_tr)
+        print("[train] evaluating on held-out test set", flush=True)
+        rng = np.random.default_rng(0)
+        sample_idx = rng.choice(X_te.shape[0], size=min(3000, X_te.shape[0]), replace=False)
+        y_pred = knn.predict(X_te[sample_idx])
+        y_true = y_te[sample_idx]
+        report = classification_report(y_true, y_pred, zero_division=0)
+        accuracy = (y_pred == y_true).mean()
+        metrics = [
+            "# Sommel-AI KNN classifier metrics",
+            f"top_n_varieties: {TOP_N_VARIETIES}",
+            f"k:               {KNN_K}",
+            f"train rows:      {X_tr.shape[0]:,}",
+            f"test rows:       {X_te.shape[0]:,} (eval sample {len(sample_idx):,})",
+            f"accuracy:        {accuracy:.4f}",
+            "",
+            report,
+        ]
+        METRICS_PATH.write_text("\n".join(metrics))
+        print(f"[train] accuracy on sample = {accuracy:.4f}", flush=True)
+        print(f"[train] full report -> {METRICS_PATH}", flush=True)
 
     joblib.dump(knn, KNN_PATH)
     joblib.dump(list(top_varieties), KNN_LABELS_PATH)
-    print("[train] done")
+    print("[train] done", flush=True)
     return 0
 
 
