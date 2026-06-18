@@ -217,7 +217,6 @@ for r in results:
             <em>“{r.description}”</em>
           </div>
           <div class="small" style="margin-top: 8px;">
-            <b>Why:</b> {r.explanation}<br>
             <b>Pairs well with:</b> {pairing_line}
           </div>
         </div>
