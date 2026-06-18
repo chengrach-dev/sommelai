@@ -43,8 +43,11 @@ METRICS_PATH = ART / "metrics.txt"
 # -----------------------------------------------------------------------------
 # Config
 # -----------------------------------------------------------------------------
+# Sized to fit comfortably in Streamlit Community Cloud's 1 GB RAM ceiling.
+# Locally you can bump max_features back to 20000 and TOP_N_VARIETIES to 25 for
+# slightly higher classifier accuracy (~3-5 points).
 TFIDF_KW = dict(
-    max_features=20000,
+    max_features=10000,
     ngram_range=(1, 2),
     min_df=5,
     max_df=0.85,
@@ -54,7 +57,7 @@ TFIDF_KW = dict(
 
 # Classifier is trained only on the top-N varieties -- the long tail of 707
 # varieties has too few samples to learn cleanly.
-TOP_N_VARIETIES = 25
+TOP_N_VARIETIES = 15
 KNN_K = 15
 
 
@@ -67,10 +70,17 @@ def main() -> int:
     df = pd.read_pickle(DATA)
     print(f"[train] {len(df):,} rows")
 
+    # Defensive dtype normalization (newer pandas may wrap strings in PyArrow
+    # ExtensionArrays which silently break sklearn / numpy indexing).
+    for col in df.columns:
+        if pd.api.types.is_extension_array_dtype(df[col].dtype):
+            df[col] = df[col].astype(object)
+
     # --- TF-IDF over all wines ---
     print("[train] fitting TF-IDF on description_clean")
     vec = TfidfVectorizer(**TFIDF_KW)
-    X = vec.fit_transform(df["description_clean"].fillna(""))
+    # .tolist() forces Python strings -- avoids any ExtensionArray weirdness.
+    X = vec.fit_transform(df["description_clean"].fillna("").astype(str).tolist())
     print(f"[train] TF-IDF matrix: {X.shape}, nnz={X.nnz:,}")
 
     joblib.dump(vec, VEC_PATH)
