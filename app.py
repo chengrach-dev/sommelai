@@ -111,7 +111,7 @@ max_price = st.sidebar.slider(
 )
 
 with st.sidebar.expander("Advanced"):
-    top_n = st.slider("Number of results", 3, 12, 6)
+    top_n = st.slider("Number of results", 3, 15, 10)
     alpha = st.slider(
         "Similarity vs. value weight",
         0.0, 1.0, 0.75, 0.05,
