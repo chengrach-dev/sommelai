@@ -97,7 +97,7 @@ query = st.sidebar.text_area(
 food = st.sidebar.text_input(
     "Food you're pairing with (optional)",
     value="grilled salmon",
-    help="A dish, ingredient, or cuisine. We boost wines that traditionally pair well with it.",
+    help="A dish, ingredient, or cuisine. We'll find wines that go well with it.",
 )
 
 color = st.sidebar.selectbox(
@@ -174,9 +174,24 @@ with st.spinner("Tasting through 130,000 wines..."):
 # Top banner: what the classifier thinks
 # -----------------------------------------------------------------------------
 if predicted:
-    st.info(
-        f"Based on what you described, we think you'd love a **{predicted}**. "
-        "Here are our top picks for you below."
+    st.markdown(
+        f"""
+        <div style="background:#FAF7F2; border:1px solid #E5DDD3;
+                    border-left:4px solid #722F37; border-radius:6px;
+                    padding:18px 22px; margin:8px 0 20px 0;">
+          <div style="color:#6B5D52; font-size:0.95rem; margin-bottom:6px;">
+            Based on what you described, we think you'd love a
+          </div>
+          <div style="color:#2D1B1E; font-size:1.9rem; font-weight:700;
+                      line-height:1.2; word-break:break-word;">
+            {predicted} 🍷
+          </div>
+          <div style="color:#6B5D52; font-size:0.9rem; margin-top:10px;">
+            Here are our top picks for you below.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 st.divider()
