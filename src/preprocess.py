@@ -102,6 +102,14 @@ def main() -> int:
     df = pd.read_csv(inp, index_col=0)
     print(f"[preprocess] loaded {len(df):,} rows, {df.shape[1]} cols")
 
+    # Force plain numpy / Python-object dtypes throughout. Newer pandas (3.x)
+    # on Python 3.14 defaults string columns to PyArrow-backed ExtensionArrays,
+    # which silently break numpy boolean masking and sklearn indexing
+    # downstream. Normalize once here so every consumer gets predictable types.
+    for col in df.columns:
+        if pd.api.types.is_extension_array_dtype(df[col].dtype):
+            df[col] = df[col].astype(object)
+
     # Drop rows with no description -- the only field we absolutely need.
     df = df.dropna(subset=["description", "variety"]).reset_index(drop=True)
 

@@ -61,7 +61,14 @@ def _matrix():
 
 @lru_cache(maxsize=1)
 def _meta() -> pd.DataFrame:
-    return pd.read_pickle(META_PATH).reset_index(drop=True)
+    df = pd.read_pickle(META_PATH).reset_index(drop=True)
+    # Defensive: re-normalize any ExtensionArray columns to plain numpy/object.
+    # The pickle was written by preprocess.py which already does this, but if
+    # an older artifact is loaded we still want safe behavior.
+    for col in df.columns:
+        if pd.api.types.is_extension_array_dtype(df[col].dtype):
+            df[col] = df[col].astype(object)
+    return df
 
 
 @lru_cache(maxsize=1)
@@ -162,17 +169,22 @@ def recommend(
     q_vec = vec.transform([q_clean])
 
     # --- 2. Filter the candidate set ---
+    # Each sub-mask is wrapped in np.asarray() so a pandas ExtensionArray
+    # never leaks into the boolean accumulator.
     mask = np.ones(len(meta), dtype=bool)
     if max_price is not None:
-        mask &= meta["price"].values <= float(max_price)
+        mask &= np.asarray(meta["price"].values <= float(max_price), dtype=bool)
     if color:
         wanted = _varieties_for_color(color)
         if wanted:
-            mask &= meta["variety"].str.lower().isin(wanted).values
+            mask &= np.asarray(meta["variety"].str.lower().isin(wanted).values, dtype=bool)
 
     if mask.sum() == 0:
         # Fall back to ignoring the color filter rather than returning nothing.
-        mask = (meta["price"].values <= float(max_price)) if max_price else np.ones(len(meta), dtype=bool)
+        if max_price is not None:
+            mask = np.asarray(meta["price"].values <= float(max_price), dtype=bool)
+        else:
+            mask = np.ones(len(meta), dtype=bool)
 
     cand_idx = np.where(mask)[0]
     if len(cand_idx) == 0:
