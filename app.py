@@ -206,6 +206,32 @@ if not results:
 
 st.subheader(f"Top {len(results)} recommendations")
 
+
+def _value_label(z: float) -> str:
+    """Convert within-variety value z-score into a plain-English label."""
+    if z >= 1.5:  return "Great deal"
+    if z >= 0.5:  return "Good value"
+    if z >= -0.5: return "Fair price"
+    if z >= -1.5: return "Splurge pick"
+    return "Premium pick"
+
+
+def _match_label(sim: float) -> str:
+    """Convert cosine similarity into a plain-English match strength."""
+    if sim >= 0.40: return "Strong match"
+    if sim >= 0.25: return "Good match"
+    if sim >= 0.15: return "Decent match"
+    return "Worth a try"
+
+
+def _points_label(pts: int) -> str:
+    """Convert Wine Enthusiast 100-pt score into a familiar descriptor."""
+    if pts >= 95: return f"Outstanding ({pts}/100)"
+    if pts >= 90: return f"Excellent ({pts}/100)"
+    if pts >= 85: return f"Very good ({pts}/100)"
+    return f"Good ({pts}/100)"
+
+
 for r in results:
     vintage = f"{int(r.vintage)}" if r.vintage else "—"
     pairing_line = ", ".join(r.pairings) if r.pairings else "—"
@@ -217,10 +243,10 @@ for r in results:
             {r.variety} · {r.winery} · {r.province}, {r.country} · vintage {vintage}
           </div>
           <div style="margin: 6px 0;">
-            <span class="wine-tag">{r.points} pts</span>
+            <span class="wine-tag">{_points_label(r.points)}</span>
             <span class="wine-tag">${r.price:.0f}</span>
-            <span class="wine-tag value">value {r.value_score:+.2f}</span>
-            <span class="wine-tag score">match {r.similarity:.2f}</span>
+            <span class="wine-tag value">{_value_label(r.value_score)}</span>
+            <span class="wine-tag score">{_match_label(r.similarity)}</span>
           </div>
           <div style="margin-top: 10px;">
             <em>“{r.description}”</em>
