@@ -74,6 +74,16 @@ TFIDF_KW = dict(
 # varieties has too few samples to learn cleanly.
 TOP_N_VARIETIES = 12
 
+# Varieties to always include in the classifier even if they're outside the
+# top-N. Used to make sure the prediction banner can return a sensible
+# sparkling-category variety when the user picks color=sparkling. (Sparkling
+# Blend has 2,153 reviews, Champagne Blend 1,396 -- below top-12 but plenty
+# for the classifier to learn.)
+MUST_INCLUDE_VARIETIES = [
+    "Sparkling Blend",
+    "Champagne Blend",
+]
+
 # Logistic Regression config -- defaults are fine for sparse TF-IDF text.
 LOGREG_KW = dict(
     max_iter=300,
@@ -122,9 +132,15 @@ def main() -> int:
     df[meta_cols].to_pickle(META_PATH)
     print(f"[train] saved vectorizer + matrix + metadata", flush=True)
 
-    # --- Build classifier dataset (top-N varieties) ---
-    print(f"[train] preparing classifier data for top-{TOP_N_VARIETIES} varieties", flush=True)
-    top_varieties = df["variety"].value_counts().head(TOP_N_VARIETIES).index
+    # --- Build classifier dataset (top-N varieties + must-include) ---
+    print(f"[train] preparing classifier data for top-{TOP_N_VARIETIES} + "
+          f"must-include varieties", flush=True)
+    top_varieties = list(df["variety"].value_counts().head(TOP_N_VARIETIES).index)
+    present = set(df["variety"].unique())
+    for v in MUST_INCLUDE_VARIETIES:
+        if v in present and v not in top_varieties:
+            top_varieties.append(v)
+    print(f"[train] classifier classes: {top_varieties}", flush=True)
     mask = df["variety"].isin(top_varieties).to_numpy()
     Xc = X[mask]
     yc = df.loc[mask, "variety"].to_numpy().astype(str)
