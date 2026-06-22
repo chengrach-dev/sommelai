@@ -42,8 +42,11 @@ ART = ROOT / "artifacts"
 VEC_PATH = ART / "tfidf_vectorizer.joblib"
 MAT_PATH = ART / "tfidf_matrix.joblib"
 META_PATH = ART / "wines_meta.pkl"
-KNN_PATH = ART / "knn_classifier.joblib"
-KNN_LABELS_PATH = ART / "knn_labels.joblib"
+# Classifier artifact (LogisticRegression, formerly KNN). Falls back to the
+# older filename so old deploys still load while the new artifacts build.
+CLASSIFIER_PATH = ART / "classifier.joblib"
+CLASSIFIER_LABELS_PATH = ART / "classifier_labels.joblib"
+KNN_PATH_LEGACY = ART / "knn_classifier.joblib"
 
 
 # -----------------------------------------------------------------------------
@@ -72,10 +75,18 @@ def _meta() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
-def _knn():
-    if not KNN_PATH.exists():
-        return None
-    return joblib.load(KNN_PATH)
+def _classifier():
+    """Load the deployed classifier. Prefers the new LogReg artifact, falls
+    back to any legacy KNN artifact still on disk."""
+    if CLASSIFIER_PATH.exists():
+        return joblib.load(CLASSIFIER_PATH)
+    if KNN_PATH_LEGACY.exists():
+        return joblib.load(KNN_PATH_LEGACY)
+    return None
+
+
+# Backwards-compatibility shim so older code paths that called _knn() still work.
+_knn = _classifier
 
 
 # -----------------------------------------------------------------------------
@@ -101,13 +112,13 @@ class Recommendation:
 
 
 def predict_variety(query: str) -> Optional[str]:
-    """Use the KNN classifier to predict the most likely variety for a query."""
-    knn = _knn()
-    if knn is None:
+    """Use the deployed classifier to predict the most likely variety for a query."""
+    clf = _classifier()
+    if clf is None:
         return None
     vec = _vectorizer()
     q = vec.transform([clean_text(query)])
-    return str(knn.predict(q)[0])
+    return str(clf.predict(q)[0])
 
 
 def recommend(
@@ -151,7 +162,7 @@ def recommend(
     # Mix in food/flavor keywords for the predicted variety -- this is the
     # "classifier-guided query expansion" trick.
     predicted_variety: Optional[str] = None
-    if use_classifier_boost and _knn() is not None:
+    if use_classifier_boost and _classifier() is not None:
         try:
             predicted_variety = predict_variety(query)
             foods_kw, flavors_kw = keywords_for(predicted_variety)

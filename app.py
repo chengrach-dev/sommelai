@@ -30,7 +30,7 @@ def _bootstrap_artifacts():
     needed = [
         ROOT / "data" / "wines_clean.pkl",
         ROOT / "artifacts" / "tfidf_matrix.joblib",
-        ROOT / "artifacts" / "knn_classifier.joblib",
+        ROOT / "artifacts" / "classifier.joblib",
     ]
     if all(p.exists() for p in needed):
         return
