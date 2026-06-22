@@ -155,7 +155,10 @@ with st.spinner("Tasting through 130,000 wines..."):
     predicted = None
     if use_classifier:
         try:
-            predicted = predict_variety(query)
+            # Pass color so the banner respects the user's color preference.
+            predicted = predict_variety(
+                query, color=None if color == "any" else color
+            )
         except Exception:
             predicted = None
 

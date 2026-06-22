@@ -111,14 +111,43 @@ class Recommendation:
     explanation: str
 
 
-def predict_variety(query: str) -> Optional[str]:
-    """Use the deployed classifier to predict the most likely variety for a query."""
+def predict_variety(query: str, color: Optional[str] = None) -> Optional[str]:
+    """Use the deployed classifier to predict the most likely variety for a query.
+
+    If ``color`` is given (red / white / rosé / sparkling), the prediction is
+    constrained to varieties matching that color -- so a user who picks "white"
+    will never be told "you'd love a Cabernet Sauvignon" even if their query
+    sounds red. Uses predict_proba() to rank all classes and returns the top
+    one that's color-eligible.
+    """
     clf = _classifier()
     if clf is None:
         return None
     vec = _vectorizer()
     q = vec.transform([clean_text(query)])
-    return str(clf.predict(q)[0])
+
+    # No color filter: just take argmax.
+    if not color:
+        return str(clf.predict(q)[0])
+
+    wanted = _varieties_for_color(color)
+    if not wanted:
+        return str(clf.predict(q)[0])
+
+    # Pull class probabilities and pick the top variety that matches the color.
+    if hasattr(clf, "predict_proba"):
+        probs = clf.predict_proba(q)[0]
+    else:
+        # LinearSVC fallback: use decision_function as a pseudo-score.
+        probs = clf.decision_function(q)[0]
+    classes = list(clf.classes_)
+    ranked = sorted(range(len(classes)), key=lambda i: -probs[i])
+    for idx in ranked:
+        if classes[idx].lower() in wanted:
+            return str(classes[idx])
+    # No color-eligible class in the classifier's vocabulary: return top
+    # overall rather than nothing, so the banner still works.
+    return str(classes[ranked[0]])
 
 
 def recommend(
@@ -164,7 +193,10 @@ def recommend(
     predicted_variety: Optional[str] = None
     if use_classifier_boost and _classifier() is not None:
         try:
-            predicted_variety = predict_variety(query)
+            # Pass color through so the predicted variety stays consistent
+            # with the user's color filter (avoids "you'd love a Cabernet"
+            # when the user picked white).
+            predicted_variety = predict_variety(query, color=color)
             foods_kw, flavors_kw = keywords_for(predicted_variety)
             q_clean = " ".join([q_clean] + foods_kw[:3] + flavors_kw[:3])
         except Exception:
