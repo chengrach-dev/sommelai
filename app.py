@@ -266,13 +266,14 @@ for r in results:
 with st.expander("How it works (methodology)"):
     st.markdown(
         """
-        **Data.** 129,970 cleaned reviews from the Wine Enthusiast 130k dataset
-        (Kaggle). Missing prices imputed by `(variety, country) → country → global`
-        medians; descriptions lowercased and stripped of non-letter tokens.
+        **Data.** 129,970 cleaned reviews from the Wine Enthusiast 130k
+        dataset (Kaggle). Missing prices (~7%) imputed by `(variety, country)
+        → country → global` medians; descriptions lowercased and stripped of
+        non-letter tokens.
 
-        **NLP pipeline.** `TfidfVectorizer(max_features=20k, ngram=(1,2), min_df=5,
-        sublinear_tf=True)` on cleaned descriptions, producing a sparse 130k × 20k
-        matrix.
+        **NLP pipeline.** `TfidfVectorizer(max_features=5000, ngram_range=(1,1),
+        min_df=5, max_df=0.85, sublinear_tf=True, stop_words="english")` on
+        cleaned descriptions, producing a sparse 130k × 5k matrix.
 
         **Recommender.** For a query, we compute cosine similarity between the
         query vector and all wines that pass the price + color filters. Final
@@ -284,15 +285,28 @@ with st.expander("How it works (methodology)"):
               + 0.03 × (variety equals classifier prediction)
         ```
 
-        where `value_score` is the within-variety z-score of `points / log(1 + price)`.
+        where `value_score` is the within-variety z-score of
+        `points / log(1 + price)`. Top-N picks are de-duplicated by winery so
+        a single producer doesn't dominate the list.
 
-        **Classifier.** KNN (k=15, cosine metric) over the TF-IDF vectors, trained
-        on the top 25 varieties (~100k rows). Test-set accuracy ≈ 0.57 on a 25-way
-        classification (random baseline ≈ 0.04). The prediction is used to expand
-        the query with the predicted variety's pairing/flavor keywords.
+        **Classifier.** Logistic Regression (multinomial, lbfgs, L2-regularized)
+        trained on TF-IDF vectors of the top 12 most-reviewed varieties
+        (~77k rows, ~12k held-out). Held-out test accuracy ≈ **0.79** on a
+        12-way classification (random baseline ≈ 0.08). The model's prediction
+        is used to enrich the query with the predicted variety's pairing /
+        flavor keywords ("classifier-guided query expansion").
 
-        **Food pairing.** A hand-curated `variety → (foods, flavors)` lookup table
-        built from standard sommelier references (Wine Folly, Court of Master
-        Sommeliers).
+        **Baseline comparison.** We baselined with a KNN classifier (k=15,
+        cosine metric) on the same data and split. KNN reached 0.68 accuracy;
+        LogReg outperformed it by **+11 percentage points** and produces a
+        ~45× smaller artifact (~0.5 MB vs ~21 MB), so LogReg is the deployed
+        model.
+
+        **Food pairing.** A curated `variety → (foods, flavors)` lookup table
+        plus a `cuisine → varieties` index and a `principle → rule of thumb`
+        table, drawn from Wine Folly, Court of Master Sommeliers (US &
+        Europe), MasterClass, The Wine Matchmaker (Antony Anderson, WSET L3),
+        Thermador's Ultimate Wine Pairing Guide, and H-E-B's Wine Pairing
+        Chart. Covers 30+ varieties and 11 cuisines.
         """
     )
