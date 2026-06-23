@@ -49,8 +49,29 @@ def _bootstrap_artifacts():
         except Exception:
             must_rebuild = True
 
+    # Verify the cleaned data has the inflation-adjusted price columns
+    # (price_2017 was added when we introduced the 2026 inflation factor).
+    # If the cached wines_clean.pkl predates that change, rebuild it so
+    # downstream prices reflect 2026 dollars.
+    if not must_rebuild:
+        try:
+            import pandas as pd
+            df_head = pd.read_pickle(ROOT / "data" / "wines_clean.pkl")
+            if "price_2017" not in df_head.columns:
+                must_rebuild = True
+        except Exception:
+            must_rebuild = True
+
     if not must_rebuild:
         return
+
+    # Force-delete stale data so preprocess regenerates it from the CSV.
+    stale = ROOT / "data" / "wines_clean.pkl"
+    if stale.exists():
+        try:
+            stale.unlink()
+        except Exception:
+            pass
 
     import streamlit as _st
     with _st.spinner("First-time setup: cleaning data and training models (~30s)…"):
