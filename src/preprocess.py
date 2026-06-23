@@ -33,6 +33,12 @@ DEFAULT_INPUTS = [
 
 OUTPUT = DATA_DIR / "wines_clean.pkl"
 
+# Wine Enthusiast prices in the Kaggle dataset were scraped in late 2017.
+# Adjust to 2026 dollars using cumulative US CPI inflation 2017 -> 2026.
+# Source: U.S. Bureau of Labor Statistics CPI-U series; ~33% cumulative
+# from Dec 2017 (CPI ≈ 246) to Q2 2026 estimate (CPI ≈ 327).
+PRICE_INFLATION_FACTOR = 1.33
+
 
 # -----------------------------------------------------------------------------
 # Text cleaning
@@ -121,6 +127,15 @@ def main() -> int:
 
     # Impute price.
     df = impute_price(df)
+
+    # Inflation-adjust the 2017 prices to 2026 dollars. Preserve the original
+    # in `price_2017` for transparency; overwrite `price` with the adjusted
+    # value so all downstream code (filters, display, value scoring) uses the
+    # 2026-dollar figure without needing changes.
+    df["price_2017"] = df["price"]
+    df["price"] = (df["price"] * PRICE_INFLATION_FACTOR).round(0)
+    print(f"[preprocess] applied {PRICE_INFLATION_FACTOR:.2f}x inflation factor "
+          f"(2017 -> 2026 dollars)", flush=True)
 
     # Value score primitives: rating-per-dollar, log-scaled so a $5 wine
     # doesn't dominate the rankings.

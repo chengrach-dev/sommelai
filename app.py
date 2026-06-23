@@ -32,8 +32,26 @@ def _bootstrap_artifacts():
         ROOT / "artifacts" / "tfidf_matrix.joblib",
         ROOT / "artifacts" / "classifier.joblib",
     ]
-    if all(p.exists() for p in needed):
+    must_rebuild = not all(p.exists() for p in needed)
+
+    # Even if the classifier artifact exists, verify it knows about the
+    # must-include varieties (e.g. Sparkling Blend). If not, the artifact is
+    # stale from an earlier training run and we need to rebuild.
+    if not must_rebuild:
+        try:
+            import joblib
+            from src.train import MUST_INCLUDE_VARIETIES
+            classes = list(joblib.load(ROOT / "artifacts" / "classifier.joblib").classes_)
+            for v in MUST_INCLUDE_VARIETIES:
+                if v not in classes:
+                    must_rebuild = True
+                    break
+        except Exception:
+            must_rebuild = True
+
+    if not must_rebuild:
         return
+
     import streamlit as _st
     with _st.spinner("First-time setup: cleaning data and training models (~30s)…"):
         from src.preprocess import main as preprocess_main
@@ -107,7 +125,9 @@ color = st.sidebar.selectbox(
 )
 
 max_price = st.sidebar.slider(
-    "Max price (USD)", min_value=5, max_value=200, value=30, step=5
+    "Max price (USD)", min_value=5, max_value=200, value=30, step=5,
+    help="Prices are 2017 Wine Enthusiast retail prices adjusted for "
+         "inflation (×1.33, BLS CPI Dec 2017 → 2026).",
 )
 
 with st.sidebar.expander("Advanced"):
@@ -270,9 +290,15 @@ with st.expander("How it works (methodology)"):
     st.markdown(
         """
         **Data.** 129,970 cleaned reviews from the Wine Enthusiast 130k
-        dataset (Kaggle). Missing prices (~7%) imputed by `(variety, country)
-        → country → global` medians; descriptions lowercased and stripped of
-        non-letter tokens.
+        dataset (Kaggle, scraped 2017). Missing prices (~7%) imputed by
+        `(variety, country) → country → global` medians; descriptions
+        lowercased and stripped of non-letter tokens.
+
+        **Inflation adjustment.** The original 2017 prices are multiplied by
+        a 1.33× CPI-based factor (US Bureau of Labor Statistics CPI-U;
+        cumulative inflation Dec 2017 → 2026) so the dollar amounts shown
+        reflect roughly current retail. The original column is preserved as
+        `price_2017` for auditability.
 
         **NLP pipeline.** `TfidfVectorizer(max_features=5000, ngram_range=(1,1),
         min_df=5, max_df=0.85, sublinear_tf=True, stop_words="english")` on
