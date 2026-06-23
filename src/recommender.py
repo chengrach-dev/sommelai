@@ -31,7 +31,13 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
-from .food_pairing import food_text, keywords_for, principle_for, varieties_for_food
+from .food_pairing import (
+    detect_origin,
+    food_text,
+    keywords_for,
+    principle_for,
+    varieties_for_food,
+)
 from .preprocess import clean_text
 
 # -----------------------------------------------------------------------------
@@ -185,6 +191,15 @@ def recommend(
     X = _matrix()
     meta = _meta()
 
+    # --- 0. Detect origin (country / region) keywords in the query ---
+    # Phrases like "German wine", "Bordeaux for steak", or "Napa Cabernet"
+    # become hard filters on country and/or province so results actually
+    # come from where the user asked. The origin keyword is stripped from
+    # the query so it doesn't dilute the description-similarity score.
+    origin, query_without_origin = detect_origin(query)
+    if origin:
+        query = query_without_origin
+
     # --- 1. Build the query vector ---
     q_clean = clean_text(query)
 
@@ -221,10 +236,30 @@ def recommend(
         wanted = _varieties_for_color(color)
         if wanted:
             mask &= np.asarray(meta["variety"].str.lower().isin(wanted).values, dtype=bool)
+    if origin:
+        if "country" in origin:
+            mask &= np.asarray(
+                meta["country"].astype(str).str.lower() == origin["country"].lower(),
+                dtype=bool,
+            )
+        if "province" in origin:
+            mask &= np.asarray(
+                meta["province"].astype(str).str.lower().str.contains(
+                    origin["province"].lower(), na=False
+                ),
+                dtype=bool,
+            )
 
     if mask.sum() == 0:
         # Fall back to ignoring the color filter rather than returning nothing.
-        if max_price is not None:
+        # (Origin filter is preserved if possible -- it's usually the user's
+        # most explicit signal.)
+        if origin and "country" in origin:
+            mask = np.asarray(
+                meta["country"].astype(str).str.lower() == origin["country"].lower(),
+                dtype=bool,
+            )
+        elif max_price is not None:
             mask = np.asarray(meta["price"].values <= float(max_price), dtype=bool)
         else:
             mask = np.ones(len(meta), dtype=bool)

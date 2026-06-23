@@ -715,6 +715,104 @@ PAIRING_PRINCIPLES: Dict[str, str] = {
 # =============================================================================
 # Public helpers
 # =============================================================================
+# =============================================================================
+# 4. Origin aliases (country / region detection from free-text query)
+# =============================================================================
+# Maps colloquial origin words ("German", "Bordeaux", "Napa") to dataset
+# filter values (country, province). Used by the recommender to interpret
+# queries like "German wine" or "Bordeaux for steak" as origin filters.
+ORIGIN_ALIASES: Dict[str, Dict[str, str]] = {
+    # ---- Countries (adjective + noun forms) ----
+    "german":        {"country": "Germany"},
+    "germany":       {"country": "Germany"},
+    "french":        {"country": "France"},
+    "france":        {"country": "France"},
+    "italian":       {"country": "Italy"},
+    "italy":         {"country": "Italy"},
+    "spanish":       {"country": "Spain"},
+    "spain":         {"country": "Spain"},
+    "portuguese":    {"country": "Portugal"},
+    "portugal":      {"country": "Portugal"},
+    "australian":    {"country": "Australia"},
+    "australia":     {"country": "Australia"},
+    "austrian":      {"country": "Austria"},
+    "austria":       {"country": "Austria"},
+    "argentine":     {"country": "Argentina"},
+    "argentinian":   {"country": "Argentina"},
+    "argentina":     {"country": "Argentina"},
+    "chilean":       {"country": "Chile"},
+    "chile":         {"country": "Chile"},
+    "american":      {"country": "US"},
+    "californian":   {"country": "US", "province": "California"},
+    "california":    {"country": "US", "province": "California"},
+    "oregonian":     {"country": "US", "province": "Oregon"},
+    "oregon":        {"country": "US", "province": "Oregon"},
+    "washington":    {"country": "US", "province": "Washington"},
+    "new zealand":   {"country": "New Zealand"},
+    "south african": {"country": "South Africa"},
+    "south africa":  {"country": "South Africa"},
+    "greek":         {"country": "Greece"},
+    "greece":        {"country": "Greece"},
+    "hungarian":     {"country": "Hungary"},
+    "hungary":       {"country": "Hungary"},
+    "israeli":       {"country": "Israel"},
+    "israel":        {"country": "Israel"},
+    "canadian":      {"country": "Canada"},
+    "canada":        {"country": "Canada"},
+
+    # ---- Famous wine regions (resolve to country + province) ----
+    "bordeaux":         {"country": "France", "province": "Bordeaux"},
+    "burgundy":         {"country": "France", "province": "Burgundy"},
+    "champagne":        {"country": "France", "province": "Champagne"},
+    "loire":            {"country": "France", "province": "Loire Valley"},
+    "alsace":           {"country": "France", "province": "Alsace"},
+    "rhône":            {"country": "France", "province": "Rhône Valley"},
+    "rhone":            {"country": "France", "province": "Rhône Valley"},
+    "provence":         {"country": "France", "province": "Provence"},
+    "languedoc":        {"country": "France", "province": "Languedoc-Roussillon"},
+    "tuscany":          {"country": "Italy", "province": "Tuscany"},
+    "tuscan":           {"country": "Italy", "province": "Tuscany"},
+    "piedmont":         {"country": "Italy", "province": "Piedmont"},
+    "piemonte":         {"country": "Italy", "province": "Piedmont"},
+    "veneto":           {"country": "Italy", "province": "Veneto"},
+    "sicily":           {"country": "Italy", "province": "Sicily & Sardinia"},
+    "rioja":            {"country": "Spain", "province": "Northern Spain"},
+    "napa":             {"country": "US", "province": "California"},
+    "sonoma":           {"country": "US", "province": "California"},
+    "willamette":       {"country": "US", "province": "Oregon"},
+    "mosel":            {"country": "Germany"},
+    "rheingau":         {"country": "Germany"},
+    "rheinhessen":      {"country": "Germany"},
+    "barossa":          {"country": "Australia"},
+    "marlborough":      {"country": "New Zealand"},
+    "mendoza":          {"country": "Argentina"},
+    "douro":            {"country": "Portugal"},
+}
+
+
+def detect_origin(query: str) -> Tuple[Dict[str, str], str]:
+    """Scan a free-text query for origin keywords. Returns (origin_filter,
+    cleaned_query). The cleaned query has the origin keyword stripped so it
+    doesn't pollute the TF-IDF similarity calculation downstream.
+
+    Examples:
+        detect_origin("German Riesling for sushi")
+            -> ({"country": "Germany"}, "riesling for sushi")
+        detect_origin("Bordeaux for steak")
+            -> ({"country": "France", "province": "Bordeaux"}, "for steak")
+    """
+    if not query:
+        return {}, query or ""
+    q_lower = query.lower()
+    # Try longer keys first so "south africa" wins over "africa".
+    for key in sorted(ORIGIN_ALIASES.keys(), key=lambda k: -len(k)):
+        # Rough word-boundary check.
+        if key in q_lower:
+            cleaned = q_lower.replace(key, " ").strip()
+            return ORIGIN_ALIASES[key], cleaned
+    return {}, query
+
+
 def keywords_for(variety: str | None) -> Tuple[List[str], List[str]]:
     """Return (foods, flavors) for a variety. Empty lists if unknown."""
     if not variety:
