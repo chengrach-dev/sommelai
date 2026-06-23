@@ -431,6 +431,199 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
         ["sweet", "honeyed", "botrytis", "apricot", "honey", "dessert wine",
          "rich"],
     ),
+
+    # =========================================================================
+    # LONG-TAIL VARIETIES (top-60 by review count, expanded from regional
+    # sommelier references; grouped by stylistic family for legibility)
+    # =========================================================================
+
+    # --- Italian regional reds ---
+    "aglianico": (
+        ["lamb", "ragu", "hard cheese", "beef stew", "italian", "grilled meats"],
+        ["tannic", "dark fruit", "earthy", "structured", "long-aging"],
+    ),
+    "nero d'avola": (
+        ["pizza", "pasta", "tomato sauce", "grilled vegetables", "sicilian",
+         "italian", "lamb"],
+        ["fruity", "ripe", "sicilian", "warm-climate", "medium-bodied"],
+    ),
+    "sangiovese grosso": (   # Brunello di Montalcino
+        ["italian", "pasta", "tomato sauce", "wild boar", "ragu", "beef",
+         "aged cheese", "porcini"],
+        ["tannic", "cherry", "earthy", "structured", "long-aging",
+         "tuscan"],
+    ),
+    "primitivo": (   # genetic twin of Zinfandel
+        ["bbq", "pizza", "pulled pork", "burgers", "spiced meats", "ribs"],
+        ["jammy", "spicy", "bold", "blackberry", "fruit-forward"],
+    ),
+    "corvina, rondinella, molinara": (   # Valpolicella / Amarone blend
+        ["risotto", "beef", "ragu", "polenta", "italian", "braised meats",
+         "aged cheese"],
+        ["cherry", "dried fruit", "earthy", "italian", "medium-bodied"],
+    ),
+
+    # --- French and Iberian reds ---
+    "cabernet franc": (
+        ["roast chicken", "pork", "salmon", "pasta", "duck", "lamb",
+         "grilled vegetables", "loire", "soft cheese"],
+        ["medium-bodied", "raspberry", "bell pepper", "herbal", "elegant",
+         "loire"],
+    ),
+    "carmenère": (   # Chilean signature
+        ["steak", "lamb", "chimichurri", "pork", "empanadas", "grilled meats",
+         "bell peppers", "roasted vegetables"],
+        ["bell pepper", "herbal", "plum", "smoky", "medium-bodied",
+         "chilean"],
+    ),
+    "carmenere": (   # ascii alias
+        ["steak", "lamb", "chimichurri", "pork", "empanadas", "grilled meats"],
+        ["bell pepper", "herbal", "plum", "smoky", "medium-bodied"],
+    ),
+    "petite sirah": (
+        ["bbq", "ribs", "lamb", "steak", "grilled meats", "stew", "burgers",
+         "dark chocolate"],
+        ["bold", "tannic", "inky", "dark fruit", "full-bodied", "peppery"],
+    ),
+    "petit verdot": (
+        ["steak", "lamb", "cassoulet", "roast beef", "venison", "hard cheese",
+         "bordeaux"],
+        ["tannic", "structured", "dark fruit", "violet", "bordeaux"],
+    ),
+    "mourvèdre": (
+        ["lamb", "game", "bbq", "stew", "grilled meats", "smoked meats",
+         "rhône cuisine"],
+        ["gamy", "peppery", "leather", "dark fruit", "full-bodied"],
+    ),
+    "mourvedre": (   # ascii alias
+        ["lamb", "game", "bbq", "stew", "grilled meats", "smoked meats"],
+        ["gamy", "peppery", "leather", "dark fruit", "full-bodied"],
+    ),
+    "garnacha": (   # Spanish Grenache
+        ["thai", "curry", "spicy food", "tomato sauce", "pizza", "tapas",
+         "paella", "lamb", "grilled meats"],
+        ["fruity", "low tannin", "red berry", "soft", "spanish",
+         "warm-climate"],
+    ),
+    "tempranillo blend": (
+        ["lamb", "tapas", "chorizo", "paella", "hard cheese", "grilled meats",
+         "spanish", "manchego"],
+        ["leather", "tobacco", "cherry", "earthy", "spanish", "structured"],
+    ),
+    "rhône-style red blend": (
+        ["bbq", "grilled meats", "lamb", "stew", "duck", "game", "burgers"],
+        ["peppery", "spicy", "dark fruit", "full-bodied", "rhône",
+         "smoky"],
+    ),
+    "rhone-style red blend": (   # ascii alias
+        ["bbq", "grilled meats", "lamb", "stew", "duck", "game", "burgers"],
+        ["peppery", "spicy", "dark fruit", "full-bodied", "rhône",
+         "smoky"],
+    ),
+
+    # --- Central European reds ---
+    "blaufränkisch": (
+        ["pork", "game", "smoked meats", "duck", "sausage", "austrian",
+         "central european"],
+        ["peppery", "earthy", "dark fruit", "medium-bodied", "austrian"],
+    ),
+    "blaufrankisch": (   # ascii alias
+        ["pork", "game", "smoked meats", "duck", "sausage"],
+        ["peppery", "earthy", "dark fruit", "medium-bodied"],
+    ),
+
+    # --- Italian whites ---
+    "garganega": (   # Soave grape
+        ["seafood pasta", "antipasti", "italian", "risotto", "shellfish",
+         "white fish", "salad"],
+        ["light", "citrus", "almond", "floral", "italian", "crisp"],
+    ),
+    "vermentino": (
+        ["seafood", "light pasta", "salad", "shellfish", "italian",
+         "antipasti", "grilled fish", "tomato pasta"],
+        ["crisp", "citrus", "saline", "herbal", "italian",
+         "mediterranean"],
+    ),
+    "glera": (   # Prosecco grape
+        ["brunch", "appetizers", "antipasti", "salami", "charcuterie",
+         "fruit", "light desserts"],
+        ["sparkling", "fruity", "light", "off-dry", "italian",
+         "approachable"],
+    ),
+
+    # --- Iberian whites ---
+    "albariño": (
+        ["seafood", "shellfish", "tapas", "paella", "ceviche", "oysters",
+         "grilled fish", "salt cod", "salad"],
+        ["crisp", "citrus", "saline", "mineral", "spanish", "coastal",
+         "high acid"],
+    ),
+    "albarino": (   # ascii alias
+        ["seafood", "shellfish", "tapas", "paella", "ceviche", "oysters"],
+        ["crisp", "citrus", "saline", "mineral", "spanish", "coastal"],
+    ),
+    "verdejo": (
+        ["seafood", "tapas", "salad", "ceviche", "shellfish", "spanish",
+         "asparagus"],
+        ["crisp", "citrus", "herbal", "almond", "spanish", "fresh"],
+    ),
+    "portuguese white": (
+        ["seafood", "shellfish", "light fish", "salad", "ceviche",
+         "vinho verde", "sushi"],
+        ["light", "crisp", "citrus", "mineral", "portuguese", "fresh"],
+    ),
+    "bordeaux-style white blend": (
+        ["lobster", "scallops", "crab", "creamy seafood", "roast chicken",
+         "soft cheese", "asparagus", "oysters"],
+        ["rich", "honeyed", "mineral", "complex", "bordeaux", "oak"],
+    ),
+
+    # --- French / Central European whites ---
+    "grüner veltliner": (
+        ["salad", "asparagus", "sushi", "thai", "vietnamese", "schnitzel",
+         "pork", "shellfish", "vegetable dishes", "spicy food"],
+        ["peppery", "herbal", "citrus", "crisp", "austrian", "high acid",
+         "white pepper"],
+    ),
+    "gruner veltliner": (   # ascii alias
+        ["salad", "asparagus", "sushi", "thai", "vietnamese", "schnitzel",
+         "pork", "shellfish"],
+        ["peppery", "herbal", "citrus", "crisp", "austrian", "high acid"],
+    ),
+    "pinot blanc": (
+        ["seafood", "chicken", "light pasta", "soft cheese", "ham",
+         "shellfish", "salad", "alsace"],
+        ["light", "crisp", "apple", "pear", "clean", "subtle", "alsace"],
+    ),
+    "rhône-style white blend": (
+        ["roast chicken", "creamy pasta", "indian", "thai", "soft cheese",
+         "rich seafood", "lobster"],
+        ["floral", "peach", "apricot", "rich", "aromatic", "rhône"],
+    ),
+    "rhone-style white blend": (   # ascii alias
+        ["roast chicken", "creamy pasta", "indian", "thai", "soft cheese"],
+        ["floral", "peach", "apricot", "rich", "aromatic"],
+    ),
+    "melon": (   # Muscadet
+        ["oysters", "shellfish", "sushi", "seafood", "raw bar", "muscadet",
+         "ceviche"],
+        ["crisp", "mineral", "saline", "lean", "high acid", "french"],
+    ),
+    "torrontés": (
+        ["thai", "indian", "spicy food", "ceviche", "sushi", "moroccan",
+         "spicy asian"],
+        ["floral", "aromatic", "off-dry", "peach", "argentine"],
+    ),
+    "torrontes": (   # ascii alias
+        ["thai", "indian", "spicy food", "ceviche", "sushi", "moroccan"],
+        ["floral", "aromatic", "off-dry", "peach", "argentine"],
+    ),
+    "sauvignon": (   # French label for Sauvignon Blanc
+        ["salad", "goat cheese", "ceviche", "sushi", "shellfish", "herbs",
+         "asparagus", "crab cakes", "soft cheese"],
+        ["crisp", "citrus", "grassy", "herbaceous", "zesty", "grapefruit",
+         "loire"],
+    ),
 }
 
 
