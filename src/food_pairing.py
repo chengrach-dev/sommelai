@@ -11,6 +11,7 @@ multiple professional sources:
     document. Used for the structural pairing rules (weight, acid, tannin, etc).
   - Thermador "The Ultimate Wine Pairing Guide" -- the detailed per-variety
     cheese / meat / seafood / veggie / herb / sauce / dessert grid.
+  - H-E-B "Wine Pairing Chart" -- the wine x food category matrix.
 
 Three layers of data are exposed:
 
@@ -51,7 +52,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
     "pinot grigio": (
         ["sushi", "light pasta", "shellfish", "salad", "antipasti", "antipasto",
          "pasta carbonara", "italian", "olive oil pasta", "seafood pasta",
-         "prawns", "halibut", "cod", "white fish", "salami", "soppressata"],
+         "prawns", "halibut", "cod", "white fish", "salami", "soppressata",
+         # H-E-B chart adds:
+         "bbq pork", "salmon", "shrimp", "soft rich cheese"],
         ["light", "crisp", "citrus", "pear", "clean", "refreshing", "melon",
          "high acid", "fresh"],
     ),
@@ -59,7 +62,7 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
         ["pork", "chicken", "white fish", "halibut", "cod", "antipasto",
          "soft cheese", "richer dishes", "salmon", "thai", "spicy asian",
          "cured meats", "ham", "soppressata", "canned fish", "sardines",
-         "anchovies"],
+         "anchovies", "bbq pork", "shrimp", "soft rich cheese"],
         ["ripe pear", "white peach", "lemon zest", "apricot", "honey",
          "meyer lemon", "golden apple", "medium-bodied", "balanced"],
     ),
@@ -72,7 +75,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "asiago", "gruyere", "pine nuts", "chicken", "turkey", "pork",
          "oysters", "scallops", "smoked salmon", "citrus", "artichoke",
          "melon", "chives", "tarragon", "garlic", "basil", "anchovy dressing",
-         "olive oil", "sorbet", "key lime pie", "apricot torte"],
+         "olive oil", "sorbet", "key lime pie", "apricot torte",
+         # H-E-B additions:
+         "fish", "pasta", "tomato veggies", "japanese cuisine", "japan"],
         ["crisp", "citrus", "grassy", "herbaceous", "zesty", "grapefruit",
          "passionfruit", "gooseberry", "tropical", "pineapple", "mango",
          "melon", "mandarin", "high acid"],
@@ -87,7 +92,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "oysters", "poached fish", "apricots", "chili peppers",
          "sweet potato", "bell peppers", "rosemary", "lemongrass", "sage",
          "sweet bbq", "black bean sauce", "honey mustard", "apple pie",
-         "caramel sauce", "baked pears"],
+         "caramel sauce", "baked pears",
+         # H-E-B additions:
+         "beef", "poultry"],
         ["sweet", "off-dry", "floral", "stone fruit", "peach", "honey",
          "petrol", "kerosene", "lemon", "lime", "grapefruit", "mineral",
          "wet stone", "residual sugar", "high acid", "crisp"],
@@ -95,14 +102,16 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
     "gewürztraminer": (
         ["thai", "indian", "spicy food", "munster cheese", "curry", "moroccan",
          "vietnamese", "ginger", "lychee", "asian cuisine", "spiced pork",
-         "shrimp", "smoked salmon", "duck"],
+         # H-E-B / Thermador additions:
+         "beef", "poultry", "shrimp", "asian/indian", "spicy",
+         "smoked salmon", "turkey", "duck"],
         ["floral", "lychee", "spicy", "rose", "aromatic", "off-dry", "ginger",
          "residual sugar"],
     ),
     "gewurztraminer": (   # ascii alias, same data
         ["thai", "indian", "spicy food", "munster cheese", "curry", "moroccan",
          "vietnamese", "ginger", "lychee", "asian cuisine", "spiced pork",
-         "shrimp", "smoked salmon", "duck"],
+         "beef", "poultry", "shrimp", "asian/indian", "spicy"],
         ["floral", "lychee", "spicy", "rose", "aromatic", "off-dry", "ginger",
          "residual sugar"],
     ),
@@ -129,7 +138,10 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "almonds", "veal", "pork loin", "halibut", "smoked trout", "mango",
          "tangerines", "bok choy", "sesame", "saffron", "rosemary", "pesto",
          "horseradish", "tropical salsa", "banana bread", "pecan pie",
-         "pound cake"],
+         "pound cake",
+         # H-E-B additions:
+         "simple beef", "fish", "cream sauce pasta", "green veggies",
+         "soft rich cheese", "japanese cuisine", "japan", "asian/indian"],
         ["buttery", "oaky", "vanilla", "rich", "tropical", "apple", "lush",
          "golden apple", "pear", "lemon", "toasty", "mouthfeel",
          "medium-bodied"],
@@ -162,7 +174,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "orange roughy", "tuna", "mussels", "oysters", "figs",
          "roasted tomatoes", "nutmeg", "curry", "thyme", "lemon butter",
          "alfredo sauce", "milk chocolate", "vanilla pudding",
-         "strawberries and cream"],
+         "strawberries and cream",
+         # H-E-B additions:
+         "poultry", "pasta", "soft rich cheese"],
         ["earthy", "red fruit", "cherry", "raspberry", "silky", "light",
          "elegant", "medium-bodied", "strawberry", "mushroom", "forest floor",
          "dusty", "oregon"],
@@ -188,7 +202,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
     "sangiovese": (
         ["pizza", "pasta", "tomato sauce", "italian", "grilled vegetables",
          "spaghetti", "lasagna", "chianti", "marinara", "bolognese",
-         "tomato pasta", "ragu", "salumi"],
+         "tomato pasta", "ragu", "salumi",
+         # H-E-B (Chianti / Sangiovese): Beef, Pasta, Tomatoes
+         "beef", "tomatoes"],
         ["bright", "cherry", "herbal", "acidic", "tomato-friendly",
          "red fruit", "medium-bodied"],
     ),
@@ -218,13 +234,17 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "pancetta", "grilled swordfish", "tuna", "shrimp",
          "caramelized onions", "endive", "black beans", "asparagus", "mint",
          "rosemary", "thyme", "nutmeg", "bolognese", "bearnaise", "berries",
-         "chocolate torte", "chocolate mousse"],
+         "chocolate torte", "chocolate mousse",
+         # H-E-B: simple beef
+         "simple beef"],
         ["soft", "plum", "chocolate", "round", "medium-bodied", "smooth",
          "blueberry", "approachable", "vanilla", "oak"],
     ),
     "tempranillo": (
         ["lamb", "tapas", "chorizo", "paella", "hard cheese", "grilled meats",
-         "spanish", "manchego", "rioja", "roast pork"],
+         "spanish", "manchego", "rioja",
+         # H-E-B (Rioja): Poultry, Tomatoes pasta
+         "poultry", "tomato pasta", "roast pork"],
         ["leather", "tobacco", "cherry", "earthy", "spanish", "structured"],
     ),
     "red blend": (
@@ -239,7 +259,8 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
     "bordeaux-style red blend": (
         ["steak", "lamb", "roast", "hard cheese", "duck", "lamb kebabs",
          "blackened swordfish", "veal", "bbq pork buns", "venison",
-         "roast beef",
+         # H-E-B (Red Bordeaux): Beef, Lamb
+         "beef", "roast beef",
          # Thermador (Meritage): Tri-Tip, Osso Buco, Roast Beef, Tuna,
          # Grilled Shark, Crab, Lobster, Boysenberry, Bell Peppers, Cauliflower,
          # Black Pepper, Thyme, Lavender, Garlic, Mushroom, Bearnaise, Marinara,
@@ -279,7 +300,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "duck", "veal", "rare tuna", "swordfish", "cioppino",
          "black cherries", "squash", "plums", "broccoli", "rosemary",
          "tarragon", "marjoram", "meat stock", "sesame", "olive oil",
-         "red pepper cream", "bittersweet chocolate", "espresso", "gelato"],
+         "red pepper cream", "bittersweet chocolate", "espresso", "gelato",
+         # H-E-B: Beef, Lamb, Hard Flavorful cheese
+         "beef", "hard flavorful cheese"],
         ["bold", "tannic", "blackcurrant", "cassis", "structured", "powerful",
          "oak", "full-bodied", "rich tannin", "dark fruit", "complex",
          "herbaceous", "spice"],
@@ -292,7 +315,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "game hens", "halibut", "salmon", "red snapper", "stewed tomatoes",
          "beets", "currants", "cherries", "sage", "thyme", "garlic",
          "parsley", "red sauce", "spicy", "steak sauce", "vodka sauce",
-         "black forest cake", "chocolate", "caramel"],
+         "black forest cake", "chocolate", "caramel",
+         # H-E-B: Beef
+         "beef"],
         ["smoky", "peppery", "spicy", "dark fruit", "full-bodied",
          "blackberry", "leather"],
     ),
@@ -315,7 +340,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
          "cioppino", "mahi mahi", "cranberries", "grilled peppers",
          "olives", "black pepper", "thyme", "bay leaf", "garlic", "spicy",
          "cajun", "hot salsa", "chimichurri", "spice cake", "carrot cake",
-         "bread pudding", "panna cotta"],
+         "bread pudding", "panna cotta",
+         # H-E-B: Beef, Tomato Sauce pasta
+         "tomato sauce", "tomato pasta"],
         ["jammy", "spicy", "bold", "blackberry", "fruit-forward"],
     ),
     "malbec": (
@@ -327,7 +354,9 @@ PAIRINGS: Dict[str, Tuple[List[str], List[str]]] = {
         ["truffle", "braised beef", "risotto", "lamb", "aged cheese",
          "osso buco", "meat ragu", "bistecca", "fiorentina", "fatty meat",
          "italian roast", "barolo pairing", "barbaresco pairing",
-         "porcini", "wild boar", "lasagne"],
+         "porcini", "wild boar",
+         # H-E-B (Barolo / Nebbiolo): Beef, Lamb, Lasagne
+         "beef", "lasagne", "pork"],
         ["tannic", "rose", "tar", "cherry", "earthy", "long-aging",
          "high tannin", "structured", "piedmont"],
     ),
@@ -634,6 +663,10 @@ CUISINE_VARIETIES: Dict[str, List[str]] = {
     ],
     "vegetarian": [
         "pinot noir", "rosé", "sauvignon blanc", "grenache",
+    ],
+    "asian/indian": [
+        "riesling", "gewürztraminer", "sauvignon blanc", "chardonnay",
+        "pinot grigio",
     ],
 }
 
